@@ -1,4 +1,4 @@
-// ©️ Mewn — Cozy
+// ©️ Mewn — Neo-Brutalism
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { useRoomContext } from './hooks/use-room-context';
@@ -36,42 +36,72 @@ export const JoinRoomPage: React.FC = () => {
   }, [linkRoomId]);
 
   return (
-    <div className="relative min-h-screen bg-paper-100 bg-paper-grain flex flex-col justify-between p-6">
-      <div className="max-w-md w-full mx-auto pt-4">
-        <Link to="/" className="inline-flex items-center gap-2 text-ink-700 hover:text-ink-900 text-sm font-medium">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-          <span>Back to warm lobby</span>
+    <div className="min-h-screen bg-paper flex flex-col">
+      <div className="h-[8px] w-full bg-ink" />
+      <div className="max-w-md w-full mx-auto px-4 pt-6">
+        <Link to="/" className="inline-flex items-center gap-2 px-3 py-2 bg-paper border-3 border-ink font-black uppercase text-xs tracking-widest shadow-brutal-sm hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_#0A0A0A] transition-all">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+          Back
         </Link>
       </div>
-      <div className="max-w-md w-full mx-auto my-auto py-8">
-        <div className="card-deckle p-8 sm:p-10 relative overflow-hidden animate-scale-in">
-          <div className="washi-tape !rotate-[1deg] !bg-pine-light/40" />
-          <div className="text-center mb-8">
-            <div className="w-14 h-14 rounded-organic bg-pine text-cream mx-auto flex items-center justify-center shadow-cozy mb-4 rotate-[2deg]">
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md bg-paper border-4 border-ink shadow-brutal p-6 sm:p-8">
+          <div className="text-center mb-6">
+            <div className="w-14 h-14 bg-ink text-paper border-4 border-ink shadow-brutal-sm mx-auto flex items-center justify-center">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0" /></svg>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-display font-light text-ink-900 mb-2">Join the Booth</h1>
-            <p className="text-sm text-ink-700 leading-relaxed">Step inside. Your friend is waiting on the other side of the lens.</p>
+            <h1 className="mt-4 font-black uppercase tracking-tighter text-2xl sm:text-3xl">Join the Booth</h1>
+            <p className="mt-2 font-mono text-xs font-bold uppercase tracking-widest text-ink/60">Paste code · Paste full link · Auto-extract</p>
           </div>
+
           {error && (
-            <div className="p-3 rounded-organic-sm bg-terracotta/10 border border-terracotta/30 text-terracotta text-sm text-center mb-6" role="alert">{error}</div>
+            <div className="p-3 bg-brutal-red border-4 border-ink font-mono text-xs font-black uppercase tracking-widest text-white text-center mb-4 shadow-brutal-sm" role="alert">{error}</div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-5">
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="roomId" className="block text-xs font-semibold text-ink-700 uppercase tracking-wider mb-2">10-Character Room Code</label>
+              <label htmlFor="roomId" className="block font-black uppercase tracking-widest text-xs mb-2">10-Character Room Code</label>
               <div className="relative">
-                <input id="roomId" type="text" value={roomId} onChange={(e) => setRoomId(e.target.value)} onPaste={(e) => { const pasted = e.clipboardData.getData('text'); const extracted = extractRoomId(pasted); if (extracted !== pasted) { e.preventDefault(); setRoomId(extracted); } }} placeholder="e.g. k9XzL2qM7p or paste link" className="input font-mono tracking-widest text-center text-lg pr-10" maxLength={200} required autoFocus={!linkRoomId} autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} />
-                <svg className="w-4 h-4 text-ink-400 absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2v6a2 2 0 01-2 2H7a2 2 0 01-2-2V6a2 2 0 012-2h6" /></svg>
+                <input
+                  id="roomId"
+                  type="text"
+                  value={roomId}
+                  onChange={(e) => setRoomId(e.target.value)}
+                  onPaste={(e) => { const pasted = e.clipboardData.getData('text'); const extracted = extractRoomId(pasted); if (extracted !== pasted) { e.preventDefault(); setRoomId(extracted); } }}
+                  placeholder="k9XzL2qM7p"
+                  className="w-full px-4 py-4 bg-paper border-4 border-ink font-mono font-black tracking-widest text-center text-lg uppercase placeholder:text-ink/30 focus:outline-none focus:bg-brutal-yellow/20"
+                  maxLength={200}
+                  required
+                  autoFocus={!linkRoomId}
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
               </div>
-              <p className="text-[11px] text-ink-500 font-mono mt-2 text-center">Paste full invite link — we’ll extract the code</p>
+              <p className="font-mono text-[11px] font-bold uppercase tracking-widest text-ink/50 mt-2 text-center">Paste full invite link — we extract automatically</p>
             </div>
-            <button type="submit" disabled={loading || !roomId.trim()} className="btn-success w-full text-base py-4">
-              {loading ? <><svg className="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg><span>Connecting Lens…</span></> : <span>Step Inside Booth</span>}
+
+            <button type="submit" disabled={loading || !roomId.trim()} className="w-full py-4 bg-brutal-yellow border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#0A0A0A] active:scale-[0.97] disabled:opacity-50 disabled:translate-x-0 disabled:shadow-brutal transition-all flex items-center justify-center gap-2">
+              {loading ? (
+                <>
+                  <span className="w-5 h-5 border-3 border-ink border-t-transparent animate-spin" />
+                  Connecting…
+                </>
+              ) : (
+                'Step Inside →'
+              )}
             </button>
           </form>
+
+          <div className="mt-6 pt-4 border-t-4 border-ink flex items-center justify-center gap-2 font-mono text-[11px] font-black uppercase tracking-widest">
+            <span className="px-2 py-1 bg-ink text-paper border-2 border-ink">STUN: stun.l.google.com:19302</span>
+          </div>
         </div>
       </div>
-      <footer className="text-center py-4 text-xs text-ink-500">©️ Mewn</footer>
+
+      <footer className="border-t-4 border-ink bg-paper py-3 text-center font-mono text-xs font-black uppercase tracking-widest">©️ Mewn</footer>
     </div>
   );
 };

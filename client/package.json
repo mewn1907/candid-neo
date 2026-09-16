@@ -1,7 +1,7 @@
 {
-  "name": "candid-client",
+  "name": "candid-neo-client",
   "version": "0.0.1",
-  "description": "Candid frontend - Miles apart. Frames together.",
+  "description": "Candid Neo frontend - Miles apart. Frames together. (Neo-Brutalism)",
   "copyright": "©️ Mewn",
   "private": true,
   "type": "module",

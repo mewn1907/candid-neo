@@ -1,5 +1,4 @@
-// ©️ Mewn
-
+// ©️ Mewn — Neo-Brutalism RemoteVideo
 import React from 'react';
 
 interface RemoteVideoProps {
@@ -30,62 +29,37 @@ export const RemoteVideo: React.FC<RemoteVideoProps> = ({
   const [showGrid, setShowGrid] = React.useState(false);
 
   return (
-    <div className={`relative w-full aspect-video bg-surface-900 rounded-xl overflow-hidden border border-surface-800 ${className}`}>
-      <video
-        ref={videoRef}
-        className="w-full h-full object-cover"
-        autoPlay
-        playsInline
-        muted
-      />
+    <div className={`relative w-full aspect-video bg-ink border-4 border-ink shadow-brutal overflow-hidden ${className}`}>
+      <video ref={videoRef} className="w-full h-full object-cover" autoPlay playsInline muted />
       {showGrid && stream && (
-        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 grid grid-cols-3 grid-rows-3">
-            <div className="border-r border-white/15" />
-            <div className="border-r border-white/15" />
-            <div />
-            <div className="border-r border-t border-white/15" />
-            <div className="border-r border-t border-white/15" />
-            <div className="border-t border-white/15" />
-            <div className="border-r border-t border-white/15" />
-            <div className="border-r border-t border-white/15" />
-            <div className="border-t border-white/15" />
+            <div className="border-r-2 border-white/40" /><div className="border-r-2 border-white/40" /><div />
+            <div className="border-r-2 border-t-2 border-white/40" /><div className="border-r-2 border-t-2 border-white/40" /><div className="border-t-2 border-white/40" />
+            <div className="border-r-2 border-t-2 border-white/40" /><div className="border-r-2 border-t-2 border-white/40" /><div className="border-t-2 border-white/40" />
           </div>
+          <div className="absolute left-1/2 top-[10%] bottom-[10%] w-px bg-brutal-yellow -translate-x-1/2" />
+          <div className="absolute top-1/2 left-[10%] right-[10%] h-px bg-brutal-yellow -translate-y-1/2" />
         </div>
       )}
-      <div className="absolute inset-0 bg-gradient-to-t from-surface-900/60 via-transparent to-transparent pointer-events-none" />
       {!stream && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center text-white/60 animate-in">
-          <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-4">
-            <svg className="w-10 h-10 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-            </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center bg-paper">
+          <div className="w-16 h-16 bg-ink text-paper border-4 border-ink shadow-brutal-sm flex items-center justify-center">
+            <svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
           </div>
-          <p className="text-heading-sm font-medium text-white">{participantLabel}</p>
-          <p className="text-body-sm text-white/50 mt-2">Waiting for connection...</p>
+          <p className="mt-3 font-black uppercase tracking-tighter text-sm">{participantLabel}</p>
+          <p className="mt-1 font-mono text-xs font-bold uppercase tracking-widest text-ink/60">Waiting for connection…</p>
         </div>
       )}
-      <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between p-3">
-        <span className="flex items-center gap-2 text-white text-sm font-medium px-3 py-1.5 bg-white/10 backdrop-blur-sm rounded-full">
-          <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-pine-600' : 'bg-clay-800 animate-pulse-soft'}`} aria-hidden="true" />
-          {participantLabel}
+      <div className="absolute bottom-0 inset-x-0 bg-paper border-t-4 border-ink flex items-center justify-between px-2 py-2">
+        <span className="px-2 py-1 bg-ink text-paper border-2 border-ink font-mono text-[11px] font-black uppercase tracking-widest flex items-center gap-1.5">
+          <span className={`w-2 h-2 border border-ink ${isConnected ? 'bg-brutal-lime' : 'bg-brutal-yellow animate-pulse'}`} />{participantLabel}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {stream && (
-            <button
-              onClick={() => setShowGrid((v) => !v)}
-              className={`p-1.5 rounded-lg backdrop-blur-sm transition-colors ${showGrid ? 'bg-white text-surface-900' : 'bg-white/10 text-white/80 hover:bg-white/20'}`}
-              aria-pressed={showGrid}
-              aria-label="Toggle grid"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" />
-              </svg>
-            </button>
+            <button onClick={() => setShowGrid(v=>!v)} className={`w-8 h-8 border-3 border-ink font-black text-xs flex items-center justify-center ${showGrid ? 'bg-brutal-yellow' : 'bg-paper'}`} aria-pressed={showGrid} aria-label="Toggle grid">#</button>
           )}
-          {isConnected && (
-            <span className="text-caption text-white/60 uppercase tracking-wider">Live</span>
-          )}
+          {isConnected && <span className="px-2 py-1 bg-brutal-lime border-3 border-ink font-mono text-[10px] font-black uppercase">Live</span>}
         </div>
       </div>
     </div>

@@ -5,7 +5,7 @@
 
 services:
   - type: web
-    name: candid-server
+    name: candid-neo-server
     env: node
     plan: free
     region: oregon
@@ -22,12 +22,12 @@ services:
       - key: LOG_LEVEL
         value: info
       - key: CORS_ORIGIN
-        value: https://candid-mewn.vercel.app,https://candid-client.onrender.com
+        value: https://candid-neo.vercel.app,https://candid-neo-client.onrender.com
       - key: STUN_SERVERS
         value: stun:stun.l.google.com:19302
 
   - type: web
-    name: candid-client
+    name: candid-neo-client
     env: static
     branch: main
     rootDir: client
@@ -40,6 +40,6 @@ services:
     envVars:
       - key: VITE_API_URL
         fromService:
-          name: candid-server
+          name: candid-neo-server
           type: web
           property: host

@@ -1,7 +1,7 @@
 {
-  "name": "candid-server",
+  "name": "candid-neo-server",
   "version": "0.0.1",
-  "description": "Candid backend - Miles apart. Frames together.",
+  "description": "Candid Neo backend - Miles apart. Frames together. (Neo-Brutalism)",
   "copyright": "©️ Mewn",
   "private": true,
   "type": "module",

@@ -1,4 +1,4 @@
-// ©️ Mewn — Cozy
+// ©️ Mewn — Neo-Brutalism InvitePanel
 import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
 
@@ -24,40 +24,44 @@ export const InvitePanel: React.FC<{ roomId: string | null }> = ({ roomId }) => 
     }
     setCopied(ok); setTimeout(()=>setCopied(false),2400);
   };
-  const canShare = typeof (navigator as any).share === 'function';
+  const canShare = typeof (navigator as unknown as { share?: unknown }).share === 'function';
   const handleNativeShare = async () => {
-    if ((navigator as any).share) { try { await (navigator as any).share({ title:'Join me in Candid', text:'Miles apart. Frames together.', url: inviteLink }); } catch {} } else handleCopy();
+    const nav = navigator as unknown as { share: (d: ShareData) => Promise<void> };
+    if (nav.share) { try { await nav.share({ title:'Join me in Candid', text:'Miles apart. Frames together.', url: inviteLink }); } catch {} } else handleCopy();
   };
 
   return (
-    <div className="card-deckle p-6 sm:p-8 max-w-lg w-full mx-auto relative text-center shadow-cozy-lg border-paper-border">
-      <div className="washi-tape" />
-      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-clay/10 text-clay text-xs font-medium mb-3">
-        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2l2.4 4.8L20 9.2l-4 3.9.9 5.4L12 16l-4.9 2.5.9-5.4L4 9.2l5.6-1.4L12 2z" /></svg>
-        <span>Waiting for your +1</span>
+    <div className="mt-6 max-w-lg w-full mx-auto bg-paper border-4 border-ink shadow-brutal p-5 sm:p-6">
+      <div className="inline-flex px-3 py-1 bg-brutal-yellow border-3 border-ink font-mono text-xs font-black uppercase tracking-widest">
+        Waiting for +1
       </div>
-      <h2 className="text-xl sm:text-2xl font-display font-light text-ink-900 mb-1">Invite Your Partner</h2>
-      <p className="text-xs sm:text-sm text-ink-700 max-w-xs mx-auto mb-6">Share this code or link. As soon as they join, the camera preview will unlock together.</p>
-      <div className="relative mb-6">
-        <div className="p-4 rounded-organic-sm bg-paper-50 border border-paper-border/90 flex items-center justify-between shadow-inner gap-3">
-          <div className="text-left min-w-0 flex-1">
-            <span className="block text-[10px] uppercase font-mono tracking-widest text-ink-500">Private Room Code</span>
-            <span className="font-mono text-2xl sm:text-3xl font-semibold tracking-wider text-ink-900 select-all break-all">{roomId}</span>
-            <code className="block text-[11px] font-mono text-ink-500 truncate mt-1 select-all">{inviteLink}</code>
-          </div>
-          <button onClick={handleCopy} className={`px-4 py-2.5 rounded-organic-sm text-xs font-semibold flex items-center gap-1.5 transition-all flex-shrink-0 ${copied ? 'bg-pine text-cream animate-bounce-soft' : 'bg-clay text-cream hover:bg-clay-hover shadow-cozy-sm'}`} aria-live="polite">
-            {copied ? <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg><span>Copied!</span></> : <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg><span>Copy Link</span></>}
-          </button>
+      <h2 className="mt-3 font-black uppercase tracking-tighter text-xl sm:text-2xl">Invite Your Partner</h2>
+      <p className="mt-1 font-mono text-xs font-bold uppercase tracking-widest text-ink/60">Share code or link — camera unlocks when 2 join</p>
+
+      <div className="mt-4 p-3 bg-paper border-4 border-ink shadow-brutal-sm flex items-center gap-3">
+        <div className="min-w-0 flex-1 text-left">
+          <span className="block font-mono text-[10px] font-black uppercase tracking-widest">Private Room Code</span>
+          <span className="block font-mono text-2xl sm:text-3xl font-black tracking-widest select-all break-all">{roomId}</span>
+          <code className="block font-mono text-[11px] font-bold truncate mt-1 select-all border-t-2 border-ink pt-1">{inviteLink}</code>
         </div>
+        <button onClick={handleCopy} className={`px-4 py-3 border-4 border-ink font-black uppercase text-xs tracking-widest flex items-center gap-1.5 shadow-[4px_4px_0px_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#0A0A0A] transition-all ${copied ? 'bg-brutal-lime' : 'bg-brutal-yellow'}`} aria-live="polite">
+          {copied ? 'Copied!' : 'Copy Link'}
+        </button>
       </div>
-      <div className="flex items-center justify-center gap-3">
-        <button onClick={()=>setShowQR(!showQR)} className="btn-secondary text-xs py-2 px-4 flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 2H2v10h10V2zM20 2h-8v8h8V2zM20 14H12v8h8v-8zM2 14h10v8H2v-8z" /></svg><span>{showQR ? 'Hide QR' : 'Show QR'}</span></button>
-        {canShare && <button onClick={handleNativeShare} className="btn-secondary text-xs py-2 px-4 flex items-center gap-1.5"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8.684 13.342C8.886 12.938 9 12.482 9 12s-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" /></svg><span>Share</span></button>}
+
+      <div className="mt-4 flex items-center justify-center gap-2">
+        <button onClick={()=>setShowQR(!showQR)} className={`px-4 py-2 border-3 border-ink font-black uppercase text-xs tracking-widest shadow-[4px_4px_0px_#0A0A0A] active:translate-x-[1px] active:translate-y-[1px] ${showQR ? 'bg-ink text-paper' : 'bg-paper'}`}>
+          {showQR ? 'Hide QR' : 'Show QR'}
+        </button>
+        {canShare && <button onClick={handleNativeShare} className="px-4 py-2 bg-brutal-cobalt text-white border-3 border-ink font-black uppercase text-xs tracking-widest shadow-[4px_4px_0px_#0A0A0A] active:translate-x-[1px] active:translate-y-[1px]">Share</button>}
       </div>
+
       {showQR && (
-        <div className="mt-6 p-4 bg-cream rounded-organic border border-paper-border inline-block animate-scale-in shadow-cozy">
-          <QRCode value={inviteLink} size={160} bgColor="#FFFDF9" fgColor="#1C1B18" aria-label={`QR code for ${inviteLink}`} />
-          <p className="text-[11px] text-ink-500 font-mono mt-2">Scan with phone camera</p>
+        <div className="mt-4 p-3 bg-paper border-4 border-ink shadow-brutal-sm inline-block">
+          <div className="p-2 bg-white border-3 border-ink">
+            <QRCode value={inviteLink} size={160} bgColor="#FFFFFF" fgColor="#0A0A0A" aria-label={`QR code for ${inviteLink}`} />
+          </div>
+          <p className="font-mono text-[11px] font-black uppercase tracking-widest text-center mt-2">Scan to join</p>
         </div>
       )}
     </div>
