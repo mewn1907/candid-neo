@@ -229,6 +229,67 @@ export const RoomView: React.FC = () => {
     if (captureState !== 'countdown') prevCountdownRef.current = null;
   }, [captureState, countdownDisplay, soundEnabled, hapticEnabled]);
 
+  // --- Keyboard & A11y Shortcuts (CANDID.md:35) — client-only, no server ---
+  // Space = capture (idle), R = retake (result/gallery), D = download (result/gallery)
+  const triggerDownload = (dataUrl: string | null, filename: string) => {
+    if (!dataUrl) return;
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  };
+
+  useEffect(() => {
+    if (!isConnected) return;
+    const isTypingTarget = (el: Element | null) => {
+      if (!el) return false;
+      const tag = el.tagName.toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return true;
+      if ((el as HTMLElement).isContentEditable) return true;
+      return false;
+    };
+    const handler = (e: KeyboardEvent) => {
+      if (isTypingTarget(document.activeElement)) return;
+      if (editingSrc || doodleTarget || stickerTarget) return;
+      const key = e.key.toLowerCase();
+      // Space → capture (idle only, mirrors Start Capture button)
+      if (e.code === 'Space' || key === ' ') {
+        if (captureState === 'idle' && localStream) {
+          e.preventDefault();
+          handleStartCapture();
+        }
+        return;
+      }
+      if (key === 'r') {
+        if (captureState === 'result' || captureState === 'gallery') {
+          e.preventDefault();
+          handleRetakeAll();
+        }
+        return;
+      }
+      if (key === 'd') {
+        if (captureState === 'result' && displaySingle) {
+          e.preventDefault();
+          triggerDownload(displaySingle, 'candid-photo.jpg');
+          flashNote('Downloaded — D');
+        } else if (captureState === 'gallery' && displayBurstSrc) {
+          e.preventDefault();
+          triggerDownload(displayBurstSrc, `candid-burst-${selectedGalleryIndex + 1}.jpg`);
+          flashNote('Downloaded — D');
+        } else if (captureState === 'gallery' && displayCollage) {
+          e.preventDefault();
+          triggerDownload(displayCollage, `candid-collage-${collageChoice}.jpg`);
+          flashNote('Downloaded — D');
+        }
+        return;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [isConnected, captureState, localStream, editingSrc, doodleTarget, stickerTarget, displaySingle, displayBurstSrc, displayCollage, selectedGalleryIndex, collageChoice, handleStartCapture, handleRetakeAll]);
+
   if (!roomId) return null;
 
   if (loading) {
@@ -283,7 +344,7 @@ export const RoomView: React.FC = () => {
           <span className={`px-3 py-1.5 border-3 border-ink font-mono text-xs font-black uppercase tracking-widest flex items-center gap-1.5 ${networkStatus==='connected' ? 'bg-brutal-lime' : networkStatus==='reconnecting' ? 'bg-brutal-yellow' : 'bg-brutal-red text-white'}`}>
             <span className={`w-2 h-2 border border-ink ${networkStatus==='connected' ? 'bg-ink' : 'bg-paper animate-pulse'}`} />{networkStatus}
           </span>
-          <button onClick={handleLeave} className="px-4 py-1.5 bg-paper border-3 border-ink font-black uppercase text-xs tracking-widest shadow-[4px_4px_0px_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#0A0A0A]">Leave</button>
+          <button onClick={handleLeave} className="px-4 py-1.5 bg-paper border-3 border-ink font-black uppercase text-xs tracking-widest shadow-[4px_4px_0px_#0A0A0A] active:translate-x-[2px] active:translate-y-[2px] active:shadow-[2px_2px_0px_#0A0A0A] focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2">Leave</button>
         </div>
       </header>
 
@@ -328,6 +389,12 @@ export const RoomView: React.FC = () => {
                   <span className="px-2 py-1 bg-brutal-yellow border-3 border-ink">WebRTC Live</span>
                   <span className="px-2 py-1 bg-paper border-3 border-ink">P2P Encrypted</span>
                 </div>
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-2 font-mono text-[11px] font-black uppercase tracking-widest" aria-label="Keyboard shortcuts">
+                  <span className="px-2 py-1 bg-ink text-paper border-2 border-ink flex items-center gap-1.5" title="Press Space to capture when idle"><kbd className="px-1 py-0.5 bg-paper text-ink border border-ink font-black">Space</kbd> Capture</span>
+                  <span className="px-2 py-1 bg-paper border-3 border-ink flex items-center gap-1.5" title="Press R to retake when viewing result"><kbd className="px-1 py-0.5 bg-ink text-paper border border-ink font-black">R</kbd> Retake</span>
+                  <span className="px-2 py-1 bg-paper border-3 border-ink flex items-center gap-1.5" title="Press D to download current photo"><kbd className="px-1 py-0.5 bg-ink text-paper border border-ink font-black">D</kbd> Download</span>
+                </div>
+                <p className="sr-only" aria-live="polite">Shortcuts: Space to capture, R to retake, D to download. Disabled while typing or editing.</p>
                 {showPrompt && <div className="mt-4"><PromptCard onDismiss={() => { setShowPrompt(false); doStartCapture(); }} /></div>}
                 {captureState !== 'idle' && captureState !== 'gallery' && (
                   <div className="mt-4 p-3 bg-brutal-yellow border-4 border-ink shadow-brutal-sm">
@@ -369,9 +436,9 @@ export const RoomView: React.FC = () => {
                     <img src={displaySingle!} alt="Your Candid photo" className="w-full h-full object-cover" />
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
-                    <button onClick={() => { setPolaroidSingle(null); retake(); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal-sm">↻ Retake</button>
-                    <button onClick={() => { setEditingSrc(displaySingle!); setEditingTarget('single'); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm">✎ Edit</button>
-                    <a href={displaySingle!} download="candid-photo.jpg" className="flex-1 py-3 bg-brutal-lime border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal-sm flex items-center justify-center gap-2">↓ Download</a>
+                    <button onClick={() => { setPolaroidSingle(null); retake(); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2" aria-keyshortcuts="r" title="Shortcut: R">↻ Retake <kbd className="ml-1 px-1 py-0.5 bg-ink text-paper border border-ink font-mono text-[10px] hidden sm:inline-block">R</kbd></button>
+                    <button onClick={() => { setEditingSrc(displaySingle!); setEditingTarget('single'); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2">✎ Edit</button>
+                    <a href={displaySingle!} download="candid-photo.jpg" className="flex-1 py-3 bg-brutal-lime border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal-sm flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2" aria-keyshortcuts="d" title="Shortcut: D">↓ Download <kbd className="ml-1 px-1 py-0.5 bg-ink text-paper border border-ink font-mono text-[10px] hidden sm:inline-block">D</kbd></a>
                   </div>
                   <div className="flex gap-2 justify-center">
                     <button onClick={async () => { const r = await shareImage(displaySingle!, 'candid-photo.jpg', 'Candid'); flashNote(r==='shared'?'Shared ✓':r==='copied'?'Copied ✓':'Download instead');}} className="px-4 py-2 bg-paper border-3 border-ink font-black uppercase text-xs tracking-widest">Share</button>
@@ -416,9 +483,9 @@ export const RoomView: React.FC = () => {
                     ))}
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center max-w-lg mx-auto">
-                    <button onClick={handleRetakeAll} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm">↻ New burst</button>
-                    <button onClick={() => { setEditingSrc(displayBurstSrc); setEditingTarget('burst'); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm">✎ Edit</button>
-                    <a href={displayBurstSrc} download={`candid-burst-${selectedGalleryIndex + 1}.jpg`} className="flex-1 py-3 bg-brutal-lime border-4 border-ink font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 shadow-brutal-sm">↓ Download</a>
+                    <button onClick={handleRetakeAll} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2" aria-keyshortcuts="r" title="Shortcut: R">↻ New burst <kbd className="ml-1 px-1 py-0.5 bg-ink text-paper border border-ink font-mono text-[10px] hidden sm:inline-block">R</kbd></button>
+                    <button onClick={() => { setEditingSrc(displayBurstSrc); setEditingTarget('burst'); }} className="flex-1 py-3 bg-paper border-4 border-ink font-black uppercase tracking-widest text-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2">✎ Edit</button>
+                    <a href={displayBurstSrc} download={`candid-burst-${selectedGalleryIndex + 1}.jpg`} className="flex-1 py-3 bg-brutal-lime border-4 border-ink font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 shadow-brutal-sm focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2" aria-keyshortcuts="d" title="Shortcut: D">↓ Download <kbd className="ml-1 px-1 py-0.5 bg-ink text-paper border border-ink font-mono text-[10px] hidden sm:inline-block">D</kbd></a>
                   </div>
                   <div className="flex gap-2 justify-center">
                     <button onClick={async () => { const r = await shareImage(displayBurstSrc, `candid-burst-${selectedGalleryIndex + 1}.jpg`, 'Candid burst'); flashNote(r==='shared'?'Shared ✓':r==='copied'?'Copied ✓':'Download instead');}} className="px-3 py-2 bg-paper border-3 border-ink font-black uppercase text-xs">Share</button>
@@ -552,9 +619,9 @@ export const RoomView: React.FC = () => {
                     </div>
                   </div>
 
-                  <button onClick={handleStartCapture} disabled={!localStream} className="w-full py-4 bg-brutal-yellow border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#0A0A0A] active:scale-[0.97] disabled:opacity-50 disabled:shadow-brutal flex items-center justify-center gap-2" aria-disabled={!localStream}>
+                  <button onClick={handleStartCapture} disabled={!localStream} className="w-full py-4 bg-brutal-yellow border-4 border-ink font-black uppercase tracking-widest text-sm shadow-brutal hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0px_#0A0A0A] active:scale-[0.97] disabled:opacity-50 disabled:shadow-brutal flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ink focus-visible:ring-offset-2" aria-disabled={!localStream} aria-keyshortcuts="Space" title="Shortcut: Space">
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg>
-                    Start Capture {promptEnabled ? '(extra: prompt)' : ''}
+                    Start Capture {promptEnabled ? '(extra: prompt)' : ''} <kbd className="ml-2 px-1.5 py-0.5 bg-ink text-paper border-2 border-ink font-mono text-xs hidden sm:inline-block">Space</kbd>
                   </button>
                   {promptEnabled && <p className="font-mono text-[11px] font-black uppercase tracking-widest text-center">Prompt will show before countdown — EXTRA</p>}
                 </div>
