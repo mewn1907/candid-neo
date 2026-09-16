@@ -14,7 +14,7 @@ import {
   PhotoFilterId,
 } from '../../../types/room.types';
 import { Socket } from 'socket.io-client';
-import { canvasFilterFor, isPhotoFilterId } from '../filters';
+import { canvasFilterFor, normalizeFilterId } from '../filters';
 import { buildCollage, CollageLayout } from '../collage';
 
 const VALID_TRANSITIONS: Record<CaptureState, CaptureState[]> = {
@@ -187,7 +187,8 @@ export function useCapture(
       setCaptureId(data.captureId);
       setTargetTime(data.targetTime);
       // The starter's filter wins so both sides render the same look.
-      setFilterState(isPhotoFilterId(data.filter) ? data.filter : 'natural');
+      // Normalize 'none' alias → 'natural' (no filter) so live preview stays in sync.
+      setFilterState(normalizeFilterId((data.filter as string) ?? 'natural'));
       const total = Number.isInteger(data.burstTotal) ? Math.min(5, Math.max(1, data.burstTotal)) : 1;
       const index = Number.isInteger(data.burstIndex) ? Math.min(total, Math.max(1, data.burstIndex)) : 1;
       setBurstPlan({ index, total });

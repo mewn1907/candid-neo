@@ -15,10 +15,10 @@ export interface PhotoFilter {
 export const PHOTO_FILTERS: PhotoFilter[] = [
   {
     id: 'natural',
-    label: 'Natural',
-    hint: 'Untouched light',
+    label: 'None',
+    hint: 'No filter — true colour',
     canvasFilter: '',
-    swatch: 'linear-gradient(135deg, #e7e5e4, #a1a1aa)',
+    swatch: 'linear-gradient(135deg, #fafaf9, #e7e5e4)',
   },
   {
     id: 'sepia',
@@ -100,9 +100,17 @@ export const PHOTO_FILTERS: PhotoFilter[] = [
 ];
 
 export function isPhotoFilterId(value: unknown): value is PhotoFilterId {
+  // Accept 'none' alias for backwards / explicit-none UX — maps to 'natural' (no filter).
+  if (value === 'none') return true;
   return PHOTO_FILTERS.some((f) => f.id === value);
 }
 
 export function canvasFilterFor(filter: PhotoFilterId): string {
+  if ((filter as string) === 'none') return '';
   return PHOTO_FILTERS.find((f) => f.id === filter)?.canvasFilter ?? '';
+}
+
+export function normalizeFilterId(filter: PhotoFilterId | string): PhotoFilterId {
+  if ((filter as string) === 'none') return 'natural';
+  return isPhotoFilterId(filter) ? (filter as PhotoFilterId) : 'natural';
 }

@@ -10,7 +10,7 @@ import { PhotoEditor } from '../capture/PhotoEditor';
 import { buildPolaroid } from '../capture/polaroid';
 import { playTick, playShutter } from '../capture/sounds';
 import { copyImageToClipboard, shareImage } from '../capture/share';
-import { canvasFilterFor, PHOTO_FILTERS } from '../capture/filters';
+import { canvasFilterFor, PHOTO_FILTERS, normalizeFilterId } from '../capture/filters';
 import { SeasonalSelector } from '../capture/SeasonalSelector';
 import { SeasonalFrameId } from '../capture/seasonal';
 import { PromptCard, DoodleOverlay, StickerOverlay } from '../capture/CreativeExtras';
@@ -340,7 +340,7 @@ export const RoomView: React.FC = () => {
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <CameraPreview onError={setCameraError} onStreamReady={handleStreamReady} filterStyle={canvasFilterFor(filter)} filterId={filter} bgBlur={bgBlur} />
-                <RemoteVideo stream={remoteStream} participantLabel={otherParticipantLabel} connectionState={connectionState} />
+                <RemoteVideo stream={remoteStream} participantLabel={otherParticipantLabel} connectionState={connectionState} filterStyle={canvasFilterFor(filter)} filterId={filter} />
               </div>
               {bgBlur && <p className="font-mono text-[11px] font-black uppercase tracking-widest text-center bg-brutal-yellow border-3 border-ink inline-block px-2 py-1 mx-auto block w-fit">Cozy blur bg — EXTRA</p>}
               {clipUrl && (
@@ -350,12 +350,17 @@ export const RoomView: React.FC = () => {
                   <a href={clipUrl} download={`candid-clip-${Date.now()}.webm`} className="mt-2 inline-block px-4 py-2 bg-ink text-paper border-3 border-ink font-black uppercase text-xs tracking-widest">Download clip</a>
                 </div>
               )}
-              {filter !== 'natural' && (
-                <div className="flex items-center justify-center gap-2 px-3 py-2 bg-brutal-yellow border-3 border-ink w-fit mx-auto font-mono text-xs font-black uppercase tracking-widest">
-                  <span className="w-3 h-3 border-2 border-ink" style={{ background: PHOTO_FILTERS.find(f=>f.id===filter)?.swatch as string || '#000' }} />
-                  Preview: {filter} — warm live filter active
-                </div>
-              )}
+              {(() => {
+                const normalized = normalizeFilterId(filter);
+                const active = PHOTO_FILTERS.find(f => f.id === normalized);
+                const isNone = normalized === 'natural';
+                return (
+                  <div className={`flex items-center justify-center gap-2 px-3 py-2 border-3 border-ink w-fit mx-auto font-mono text-xs font-black uppercase tracking-widest ${isNone ? 'bg-paper' : 'bg-brutal-yellow'}`}>
+                    <span className="w-3 h-3 border-2 border-ink flex-shrink-0 flex items-center justify-center text-[8px]" style={{ background: active?.swatch as string || '#000' }}>{isNone ? '∅' : ''}</span>
+                    Live preview: {isNone ? 'None — no filter (default)' : `${active?.label} — ${active?.hint}`}{!isNone && ' · live on camera'}
+                  </div>
+                );
+              })()}
 
               {captureState === 'result' && composedImage && (
                 <div className="space-y-4 border-t-4 border-ink pt-6">

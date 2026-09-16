@@ -53,6 +53,10 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({ onError, onStreamR
 
   useEffect(() => { setMirrored(facingMode === 'user'); }, [facingMode]);
 
+  const normalizedFilterId = filterId === 'none' ? 'natural' : filterId;
+  const effectiveFilter = [filterStyle, bgBlur ? 'blur(6px)' : ''].filter(Boolean).join(' ') || undefined;
+  const isFiltered = !!normalizedFilterId && normalizedFilterId !== 'natural';
+
   useEffect(() => {
     if (!stream || !videoRef.current) { setExposureHint(null); return; }
     const video = videoRef.current;
@@ -92,7 +96,9 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({ onError, onStreamR
               className="w-full h-full object-cover"
               style={{
                 transform: mirrored ? 'scaleX(-1)' : undefined,
-                filter: [filterStyle, bgBlur ? 'blur(6px)' : ''].filter(Boolean).join(' ') || undefined,
+                filter: effectiveFilter,
+                transition: 'filter 220ms ease',
+                willChange: effectiveFilter ? 'filter' : undefined,
               }}
               autoPlay
               playsInline
@@ -102,9 +108,13 @@ export const CameraPreview: React.FC<CameraPreviewProps> = ({ onError, onStreamR
             <div className="absolute top-2 left-2 px-2 py-1 bg-brutal-yellow border-3 border-ink font-mono text-[11px] font-black uppercase tracking-widest shadow-[3px_3px_0px_#0A0A0A]">
               ● {facingMode === 'user' ? 'FRONT' : 'BACK'} · {exposureHint ?? 'LIVE'}
             </div>
-            {filterId && filterId !== 'natural' && (
+            {isFiltered ? (
               <div className="absolute top-2 right-2 px-2 py-1 bg-ink text-paper border-2 border-paper font-mono text-[10px] font-black uppercase tracking-widest">
-                {filterId}
+                {normalizedFilterId} · Live preview
+              </div>
+            ) : (
+              <div className="absolute top-2 right-2 px-2 py-1 bg-paper text-ink border-2 border-ink font-mono text-[10px] font-black uppercase tracking-widest">
+                None · Live preview
               </div>
             )}
             {showGrid && (
